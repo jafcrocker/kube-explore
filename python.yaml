@@ -5,11 +5,23 @@ metadata:
     labels:
         app: server
 spec:
-    ports: 
+    ports:
     - port: 8000
       targetPort: 8000
     selector:
         app: server
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: web-data-claim
+spec:
+    storageClassName: manual
+    accessModes:
+    - ReadWriteOnce
+    resources:
+        requests:
+            storage: 100Mi
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -35,5 +47,5 @@ spec:
                     name: mypd
             volumes:
                - name: mypd
-                 hostPath:
-                     path: /tmp/kube-data
+                 persistentVolumeClaim:
+                     claimName: web-data-claim
