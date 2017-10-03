@@ -27,6 +27,13 @@ spec:
               image: python:2.7-alpine
               command: ["python"]
               args: ["-mSimpleHTTPServer"]
+              workingDir: /web/data
               ports:
                   - containerPort: 8000
-        
+              volumeMounts:
+                  - mountPath: /web/data
+                    name: mypd
+            volumes:
+               - name: mypd
+                 hostPath:
+                     path: /tmp/kube-data
