@@ -16,7 +16,9 @@ kind: PersistentVolumeClaim
 metadata:
     name: web-data-claim
 spec:
-    storageClassName: manual
+    # "standard" storage class is dynamically allocated
+    # when using minikube.
+    storageClassName: standard
     accessModes:
     - ReadWriteOnce
     resources:
