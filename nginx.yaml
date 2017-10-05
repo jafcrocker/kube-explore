@@ -19,7 +19,7 @@ data:
         server {
             listen 80;
             location / {
-                proxy_pass http://server:8000;
+                proxy_pass http://traefik-ingress-service:80;
             }
         }
 ---
