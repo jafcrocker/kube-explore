@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  labels:
+    app: zookeeper
+spec:
+  ports:
+  - name: client
+    port: 2181
+    targetPort: 2181
+  selector:
+    app: zookeeper
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: zookeeper
+spec:
+  serviceName: zookeeper-ss
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      # TODO: 
+      # - Per zookeeper docs, data and data logs should be on separate volumes.
+      # - Unused volumes are mounted by image into /datalog and /data
+      #     https://github.com/zenoss/zing-deploy/blob/master/docker-compose.yml#L295-L298
+      # - Per zookeeper docs, need to schedule a periodic data directory cleanup.
+      - name: zookeeper
+        image: zookeeper:3.4.10
+        env:
+        - name:  ZOO_DATA_DIR
+          value: /var/lib/zookeeper
+        - name: ZOO_DATA_LOG_DIR
+          value: /var/lib/zookeeper
+        ports:
+        - containerPort: 2181
+          name: client
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/lib/zookeeper
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+
