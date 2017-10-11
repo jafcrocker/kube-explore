@@ -1,0 +1,66 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: hdfs-namenode
+  labels: 
+    app: hdfs-namenode
+spec:
+  ports:
+  - port: 8020
+    name: fs
+  clusterIP: None
+  selector:
+    app: hdfs-namenode
+---
+kind: StatefulSet
+apiVersion: apps/v1beta1
+metadata:
+  name: hdfs-namenode
+spec:
+  serviceName: hdfs-namenode
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hdfs-namenode
+    spec:
+      containers:
+      - name: hdfs-namenode
+        image: &hdfs-image registry.zing.zenoss.eng/zenosszing/zing-hdfs:f0566466
+        command: [ "/usr/local/bin/bootstrap.sh", "namenode" ]
+        env:
+        - name: CLUSTER_NAME
+          value: hdfs-namenode
+        - name: CONFIG_TYPE
+          value: dev
+        ports: 
+        - containerPort: 8020
+          name: fs
+        volumeMounts:
+        - &data-volume 
+          name: data 
+          mountPath: /data/hdfs/nn
+      initContainers:
+      - name: chown
+        image: *hdfs-image
+        command: [chown, "hdfs:hdfs", /data/hdfs/nn]
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - *data-volume
+      - name: init
+        image: *hdfs-image
+        command: [ /usr/local/bin/init_hdfs.sh ]
+        volumeMounts:
+        - *data-volume
+  volumeClaimTemplates:
+  - metadata: 
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+
+
