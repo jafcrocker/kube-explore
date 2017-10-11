@@ -1,0 +1,61 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: cassandra
+  labels:
+    app: cassandra
+spec:
+  ports:
+    - port: 9042
+      name: client
+  clusterIP: None
+  selector:
+    app: cassandra
+---
+kind: StatefulSet
+apiVersion: apps/v1beta1
+metadata:
+  name: cassandra
+spec:
+  serviceName: cassandra
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cassandra
+    spec:
+      containers:
+      - name: cassandra
+        image: &image registry.zing.zenoss.eng/zenosszing/zing-cassandra:93705cc3
+        command: [ /home/cassandra/docker-entrypoint.sh, cassandra, -f ]
+        env:
+        - name: CASSANDRA_BROADCAST_ADDRESS
+          value: cassandra
+        - name: CASSANDRA_SEEDS
+          value: cassandra
+        ports:
+        - containerPort: 9042
+          name: native-client
+        volumeMounts:
+        - &data-volume
+          name: data
+          mountPath: /var/lib/cassandra
+      initContainers:
+      - name: chown
+        image: *image
+        command: [chown, "cassandra:cassandra", /var/lib/cassandra]
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - *data-volume
+  volumeClaimTemplates:
+  - metadata: 
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+
+
