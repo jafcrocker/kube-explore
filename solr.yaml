@@ -1,0 +1,44 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: solr
+  labels:
+    app: solr
+spec:
+  ports:
+    - port: 8983
+      name: host-port
+  clusterIP: None
+  selector:
+    app: solr
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: solr
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: solr
+    spec:
+      containers:
+      - name: solr
+        image: registry.zing.zenoss.eng/zenosszing/zing-solr:8f1690f6
+        command: [ init-solr.sh, solr, start, -f, -cloud ]
+        env:
+        - name: FS_DEFAULTFS
+          value: hdfs://hdfs-namenode:8020/solr
+        - name: SOLR_OPTS
+          value: >-
+            -Dsolr.directoryFactory=HdfsDirectoryFactory
+            -Dsolr.hdfs.home=hdfs://hdfs-namenode:8020/solr
+            -Dsolr.hdfs.confdir=/opt/solr/server/etc/hadoop
+            -Dsolr.lock.type=hdfs
+        - name: ZK_HOST
+          value: zookeeper/solr
+        ports:
+        - containerPort: 8983
+          name: host-port
+
