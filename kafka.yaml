@@ -1,0 +1,38 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+spec:
+  ports:
+    - port: 9092
+  clusterIP: None
+  selector:
+    app: kafka
+---
+kind: StatefulSet
+apiVersion: apps/v1beta1
+metadata:
+  name: kafka
+spec:
+  serviceName: kafka
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:3.2.1-6
+        env:
+        - name: KAFKA_BROKER_ID
+          value: "1"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: PLAINTEXT://kafka:9092
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: zookeeper:2181/databus/kafka 
+        ports:
+        - containerPort: 9092
+
