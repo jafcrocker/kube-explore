@@ -1,0 +1,53 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: spark-master
+  labels:
+    app: spark-master
+spec:
+  ports:
+    - port: 7077
+      name: service
+  clusterIP: None
+  selector:
+    app: spark-master
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: spark-master
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: spark-master
+    spec:
+      containers:
+      - name: spark-master
+        image: registry.zing.zenoss.eng/zenosszing/zing-spark:a94e7040
+        command: [ /opt/spark/sbin/start-master.sh ]
+        env:
+          - name: SPARK_MASTER_HOST
+            value: 0.0.0.0
+          - name: SPARK_MASTER_OPTS
+            value: -Dspark.deploy.defaultCores=3
+          - name: SPARK_MASTER_PORT
+            value: '7077'
+          - name: SPARK_MASTER_WEBUI_PORT
+            value: '8080'
+          - name: SPARK_NO_DAEMONIZE
+            value: "true"
+          - name: SPARK_DAEMON_JAVA_OPTS
+            value: >-
+              -Dspark.deploy.recoveryMode=ZOOKEEPER
+              -Dspark.deploy.zookeeper.url=zookeeper:2181
+              -Dspark.deploy.zookeeper.dir=/datapipeline/spark
+              -Dspark.eventLog.enabled=true
+              -Dspark.eventLog.dir=hdfs://hdfs-namenode:8020/spark-events
+        ports:
+        - containerPort: 8080
+          name: webui
+        - containerPort: 7077
+          name: service
+        

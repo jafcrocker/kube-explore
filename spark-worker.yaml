@@ -1,0 +1,51 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: spark-worker
+  labels:
+    app: spark-worker
+spec:
+  ports:
+    - port: 7078
+      name: service
+  clusterIP: None
+  selector:
+    app: spark-worker
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: spark-worker
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: spark-worker
+    spec:
+      containers:
+      - name: spark-worker
+        image: registry.zing.zenoss.eng/zenosszing/zing-spark:a94e7040
+        command: [ /opt/spark/sbin/start-slave.sh, 'spark://spark-master:7077' ]
+        env:
+          - name: SPARK_DAEMON_JAVA_OPTS
+            value: >-
+              -Dspark.deploy.recoveryMode=ZOOKEEPER
+              -Dspark.deploy.zookeeper.url=zookeeper:2181
+              -Dspark.deploy.zookeeper.dir=/datapipeline/spark
+              -Dspark.eventLog.enabled=true
+              -Dspark.eventLog.dir=hdfs://hdfs-namenode:8020/spark-events
+          - name: SPARK_NO_DAEMONIZE
+            value: "true"
+          - name: SPARK_WORKER_OPTS
+            value: -Dspark.worker.cleanup.enabled=true -Dspark.shuffle.service.enabled=true
+          - name: SPARK_WORKER_PORT
+            value: '7078'
+          - name: SPARK_WORKER_WEBUI_PORT
+            value: '8081'
+        ports:
+        - containerPort: 8081
+          name: webui
+        - containerPort: 7078
+          name: service
+        
