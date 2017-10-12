@@ -1,0 +1,71 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: databus-manager
+  labels:
+    app: databus-manager
+spec:
+  ports:
+    - port: 8065
+      name: client
+  clusterIP: None
+  selector:
+    app: databus-manager
+---
+kind: StatefulSet
+apiVersion: apps/v1beta1
+metadata:
+  name: databus-manager
+spec:
+  replicas: 1
+  serviceName: databus-manager
+  template:
+    metadata:
+      labels:
+        app: databus-manager
+    spec:
+      containers:
+      - name: databus-manager
+        image: registry.zing.zenoss.eng/zenosszing/databusmanager
+        command: [ /opt/zenoss/bin/databus-manager-start.sh ]
+        env:
+          - name: DATABUS_MANAGER_CONFIG_FILE
+            value: /opt/zenoss/etc/databus-manager/databus-manager.properties
+          - name: DATABUS_MANAGER_CONNECTOR_ENSEMBLE
+            value: http://kafka-connect:8083
+          - name: DATABUS_MANAGER_CONNECTOR_URL
+            value: http://kafka-connect:8083
+          - name: DATABUS_MANAGER_DESCRIPTOR_DIR_DYNAMIC
+            value: /var/zenoss/databus/etc
+          - name: DATABUS_MANAGER_NUM_BROKERS
+            value: '1'
+          - name: DATABUS_MANAGER_REST_SERVER_PORT
+            value: '8065'
+          - name: DATABUS_MANAGER_SCHEMA_REGISTRY
+            value: http://kafka-schema-registry:8081
+          - name: DATABUS_MANAGER_ZK_ENSEMBLE
+            value: zookeeper:2181
+        ports:
+        - containerPort: 8065
+          name: client
+        volumeMounts:
+        - name: data
+          mountPath: /var/zenoss/databus
+      initContainers:
+      - name: init
+        image: alpine:3.6
+        command: [ mkdir, -p, /databus/etc/connectors, /databus/etc/topics ]
+        volumeMounts:
+          - name: data
+            mountPath: /databus
+  volumeClaimTemplates:
+  - metadata: 
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 256Mi
+
+
+
