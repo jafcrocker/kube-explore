@@ -1,6 +1,6 @@
 ```
 # Set sufficient resources for Cassandra
-minikube config set memory 5120
+minikube config set memory 16384
 minikube config set cpus 4
 
 minikube start
