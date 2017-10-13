@@ -1,0 +1,64 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: datapipeline
+  labels:
+    app: datapipeline
+spec:
+  ports:
+    - port: 8095
+      name: http
+    - port: 8096
+      name: https
+  clusterIP: None
+  selector:
+    app: datapipeline
+---
+kind: StatefulSet
+apiVersion: apps/v1beta1
+metadata:
+  name: datapipeline
+spec:
+  replicas: 1
+  serviceName: datapipeline
+  template:
+    metadata:
+      labels:
+        app: datapipeline
+    spec:
+      containers:
+      - name: datapipeline
+        image: registry.zing.zenoss.eng/zenosszing/datapipeline:7497188a
+        command: [ /opt/zenoss/bin/start-datapipeline-service.sh ]
+        env:
+          - name: DATAPIPELINE_CONFIG_FILE
+            value: /opt/zenoss/etc/datapipeline-service/PipelineFramework.properties
+          - name: DATAPIPELINE_DFS_DIR
+            value: hdfs://hdfs-namenode:8020/datapipeline
+          - name: DATAPIPELINE_KAFKA_BROKERS
+            value: kafka:9092
+          - name: DATAPIPELINE_SCHEMA_REGISTRY
+            value: kafka-schema-registry:8081
+          - name: DATAPIPELINE_SPARK_MASTER_URL
+            value: spark-master:7077
+          - name: DATAPIPELINE_ZK_ENSEMBLE
+            value: zookeeper:2181
+        ports:
+        - containerPort: 8095
+          name: http
+        - containerPort: 8096
+          name: httpas
+        volumeMounts:
+        - name: data
+          mountPath: /var/zenoss/datapipeline
+  volumeClaimTemplates:
+  - metadata: 
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 256Mi
+
+
+
