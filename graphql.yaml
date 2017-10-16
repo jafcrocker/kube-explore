@@ -1,0 +1,79 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: graphql
+  labels:
+    app: graphql
+spec:
+  ports:
+    - port: 8080
+      name: rest
+  clusterIP: None
+  selector:
+    app: graphql
+
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: graphql
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: graphql
+    spec:
+      containers:
+      - name: graphql
+        image: registry.zing.zenoss.eng/zenosszing/graphql:22f72433
+        env:
+          - name: GRAPHQL_AUTH_DISABLED
+            value: '1'
+          - name: GRAPHQL_AUTH_KEY_FILE
+            value: /run/secrets/authorization_secret
+          - name: GRAPHQL_CLIENT_DOMAIN_QUERY
+            value: domain-query:8080
+          - name: GRAPHQL_CLIENT_REPORT
+            value: reporter:8080
+          - name: GRAPHQL_HTTP_PORT
+            value: '8080'
+          - name: GRAPHQL_LOG_LEVEL
+            value: info
+          - name: GRAPHQL_TEST_DATA
+            value: /etc/dev_db.json
+          - name: GRAPHQL_TRACING_ENABLED
+            value: '0'
+        ports:
+        - containerPort: 8080
+          name: rest
+        volumeMounts:
+        - name: authorization-secret
+          mountPath: /run/secrets
+      volumes:
+      - name: authorization-secret
+        secret:
+          secretName: authorization
+          items: 
+          - key: value
+            path: authorization_secret
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata: 
+  name: graphql
+  annotations: 
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+  labels:
+    tier: service
+spec:
+  rules:
+  - http: 
+      paths:
+      - path: /api/graphql
+        backend: 
+          serviceName: graphql
+          servicePort: 8080
+

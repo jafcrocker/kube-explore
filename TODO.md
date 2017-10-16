@@ -8,7 +8,7 @@
 
 # Service
 - [x] gw-service
-- [ ] graphql
+- [x] graphql
 - [ ] zenoss-model-ingest / model-ingest-pipeline-initializer
 - [ ] zenoss-metric-ingest / metric-pipeline-initializer
 - [ ] domain-query / query-pipeline-initializer
@@ -32,4 +32,4 @@
 
 ## Other functionality
 - [ ] Network 
-- [ ] Secrets
+- [x] Secrets
