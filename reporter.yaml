@@ -1,0 +1,87 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: reporter
+  labels:
+    app: reporter
+spec:
+  ports:
+    - port: 8080
+      name: rest
+  clusterIP: None
+  selector:
+    app: reporter
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: reporter-data
+spec:
+  storageClassName: standard
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: reporter
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: reporter
+    spec:
+      containers:
+      - name: reporter
+        image: registry.zing.zenoss.eng/zenosszing/reporter:5c1b7971
+        env:
+          - name: REPORTER_AUTH_KEY_FILE
+            value: /run/secrets/authorization_secret
+          - name: REPORTER_DATA_DIR
+            value: /var/reporter
+          - name: REPORTER_TRACING_ENABLED
+            value: '0'
+        ports:
+        - containerPort: 8080
+          name: rest
+        volumeMounts:
+        - name: authorization-secret
+          mountPath: /run/secrets
+        - name: data
+          mountPath: /var/reporter
+      volumes:
+      - name: authorization-secret
+        secret:
+          secretName: authorization
+          items: 
+          - key: value
+            path: authorization_secret
+      - name: data
+        persistentVolumeClaim:
+          claimName: reporter-data
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata: 
+  name: reporter
+  annotations: 
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+  labels:
+    tier: service
+spec:
+  rules:
+  - http: 
+      paths:
+      - path: /api/reports
+        backend: 
+          serviceName: reporter
+          servicePort: 8080
+

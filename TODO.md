@@ -12,7 +12,7 @@
 - [ ] zenoss-model-ingest / model-ingest-pipeline-initializer
 - [ ] zenoss-metric-ingest / metric-pipeline-initializer
 - [ ] domain-query / query-pipeline-initializer
-- [ ] reporter
+- [x] reporter
 
 # Back
 - [x] gw-back
