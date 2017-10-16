@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: gw-back
+  name: gw-service
 spec:
   selector:
-    app: gw-back
+    app: gw-service
   ports:
   - port: 8000
     targetPort: 80
@@ -16,24 +16,24 @@ spec:
 kind: Deployment
 apiVersion: apps/v1beta1
 metadata:
-  name: gw-back
+  name: gw-service
   labels:
-    app: gw-back
+    app: gw-service
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: gw-back
+        app: gw-service
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-      - name: gw-back
+      - name: gw-service
         image: 'traefik:1.2.3-alpine'
-        args:
-        - --web
+        args: 
+        - --web 
         - --kubernetes
-        - --kubernetes.labelselector=tier=back
+        - --kubernetes.labelselector=tier=service
         - --loglevel=INFO
         ports:
         - containerPort: 80

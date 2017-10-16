@@ -7,7 +7,7 @@
 - [ ] authorization
 
 # Service
-- [ ] gw-service
+- [x] gw-service
 - [ ] graphql
 - [ ] zenoss-model-ingest / model-ingest-pipeline-initializer
 - [ ] zenoss-metric-ingest / metric-pipeline-initializer
