@@ -4,7 +4,6 @@
 - [ ] lb-edge
 - [ ] web 
 - [x] edge
-- [ ] authorization
 
 # Service
 - [x] gw-service
@@ -13,6 +12,7 @@
 - [x] zenoss-metric-ingest / metric-pipeline-initializer
 - [x] domain-query / query-pipeline-initializer
 - [x] reporter
+- [x] authorization
 
 # Back
 - [x] gw-back

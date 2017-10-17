@@ -1,0 +1,79 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: authorization
+  labels:
+    app: authorization
+spec:
+  ports:
+    - port: 9430
+      name: rest
+  clusterIP: None
+  selector:
+    app: authorization
+
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: authorization
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: authorization
+    spec:
+      containers:
+      - name: authorization
+        image: registry.zing.zenoss.eng/zenosszing/authorization:bddff7a3
+        env:
+          - name: AUTHORIZATION_AUTH_DISABLED
+            value: '0'
+          - name: AUTHORIZATION_AUTH_KEY_FILE
+            value: /run/secrets/edge/value
+          - name: AUTHORIZATION_DEV_MODE
+            value: '1'
+          - name: AUTHORIZATION_HTTP_PORT
+            value: '9430'
+          - name: AUTHORIZATION_LOG_LEVEL
+            value: info
+          - name: AUTHORIZATION_SIGN_KEY_FILE
+            value: /run/secrets/authorization/value
+          - name: AUTHORIZATION_TRACING_ENABLED
+            value: '0'
+        ports:
+        - containerPort: 9430
+          name: rest
+        volumeMounts:
+        - name: authorization-secret
+          mountPath: /run/secrets/authorization
+        - name: edge-secret
+          mountPath: /run/secrets/edge
+      volumes:
+      - name: authorization-secret
+        secret:
+          secretName: authorization
+      - name: edge-secret
+        secret:
+          secretName: edge
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata: 
+  name: authorization
+  annotations: 
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+  labels:
+    tier: service
+spec:
+  rules:
+  - http: 
+      paths:
+      - path: /authorization
+        backend: 
+          serviceName: authorization
+          servicePort: 9430
+
