@@ -1,0 +1,70 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: domain-query
+  labels:
+    app: domain-query
+spec:
+  ports:
+    - port: 8080
+      name: rest
+  clusterIP: None
+  selector:
+    app: domain-query
+
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: domain-query
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: domain-query
+    spec:
+      containers:
+      - name: domain-query
+        image: registry.zing.zenoss.eng/zenosszing/domain-query:1525c7e1
+        env:
+          - name: DOMAIN_QUERY_AUTH_DISABLED
+            value: '1'
+          - name: DOMAIN_QUERY_AUTH_KEY_FILE
+            value: /run/secrets/authorization_secret
+        ports:
+        - containerPort: 8080
+          name: rest
+        volumeMounts:
+        - name: authorization-secret
+          mountPath: /run/secrets
+      initContainers:
+      - name: pipeline-init
+        image: registry.zing.zenoss.eng/zenosszing/query-pipeline-initializer:8455b18f
+      volumes:
+      - name: authorization-secret
+        secret:
+          secretName: authorization
+          items: 
+          - key: value
+            path: authorization_secret
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata: 
+  name: domain-query
+  annotations: 
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+  labels:
+    tier: service
+spec:
+  rules:
+  - http: 
+      paths:
+      - path: /api/domain/query
+        backend: 
+          serviceName: domain-query
+          servicePort: 8080
+
