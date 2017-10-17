@@ -1,0 +1,40 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: lb-edge
+  labels:
+    app: lb-edge
+spec:
+  type: LoadBalancer
+  selector:
+    app: lb-edge
+  ports:
+    - port: 8000
+      name: http
+    - port: 80
+      name: health
+    - port: 8443
+      name: https
+
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: lb-edge
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: lb-edge
+    spec:
+      containers:
+      - name: lb-edge
+        image: registry.zing.zenoss.eng/zenosszing/zing-nginx:50f718d6
+        ports:
+        - containerPort: 80
+          name: health
+        - containerPort: 8000
+          name: http
+        - containerPort: 8443
+          name: https
