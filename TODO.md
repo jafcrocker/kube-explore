@@ -2,7 +2,7 @@
 
 # Edge
 - [ ] lb-edge
-- [ ] web 
+- [x] web 
 - [x] edge
 
 # Service
