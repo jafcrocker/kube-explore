@@ -1,0 +1,9 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: auth0
+type: Opaque
+data:
+  # value=$(echo -n "secret" | base64)
+  value: c2VjcmV0   
+

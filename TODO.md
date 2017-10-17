@@ -3,7 +3,7 @@
 # Edge
 - [ ] lb-edge
 - [ ] web 
-- [ ] edge
+- [x] edge
 - [ ] authorization
 
 # Service

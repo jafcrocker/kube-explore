@@ -1,0 +1,79 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: edge
+  labels:
+    app: edge
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  clusterIP: 
+  selector:
+    app: edge
+
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: edge
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: edge
+    spec:
+      containers:
+      - name: edge
+        image: registry.zing.zenoss.eng/zenosszing/edge:82df8b04
+        env:
+          - name: EDGE_API_PROXY_URL
+            value: http://gw-service:8000
+          - name: EDGE_AUTHORIZATION_KEY_FILE
+            value: /run/secrets/authorization/value
+          - name: EDGE_AUTHORIZATION_TIMEOUT
+            value: '3000'
+          - name: EDGE_AUTHORIZATION_URL
+            value: http://authorization:9430
+          - name: EDGE_AUTH_DISABLED
+            value: '1'
+          - name: EDGE_AUTH_KEY_FILE
+            value: /run/secrets/auth0/value
+          - name: EDGE_AUTH_UI_KEY_FILE
+            value: /run/secrets/ui-auth/value
+          - name: EDGE_HTTP_PORT
+            value: '8080'
+          - name: EDGE_LOG_LEVEL
+            value: info
+          - name: EDGE_SIGN_KEY_FILE
+            value: /run/secrets/edge/value
+          - name: EDGE_TRACING_ENABLED
+            value: '0'
+        ports:
+        - containerPort: 8080
+          name: rest
+        volumeMounts:
+        - name: authorization-secret
+          mountPath: /run/secrets/authorization
+        - name: auth0-secret
+          mountPath: /run/secrets/auth0
+        - name: edge-secret
+          mountPath: /run/secrets/edge
+        - name: ui-auth-secret
+          mountPath: /run/secrets/ui-auth
+      volumes:
+      - name: authorization-secret
+        secret:
+          secretName: authorization
+      - name: auth0-secret
+        secret:
+          secretName: auth0
+      - name: edge-secret
+        secret:
+          secretName: edge
+      - name: ui-auth-secret
+        secret:
+          secretName: ui-auth
+
