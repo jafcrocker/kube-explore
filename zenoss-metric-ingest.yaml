@@ -1,0 +1,70 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: zenoss-metric-ingest
+  labels:
+    app: zenoss-metric-ingest
+spec:
+  ports:
+    - port: 8080
+      name: rest
+  clusterIP: None
+  selector:
+    app: zenoss-metric-ingest
+
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: zenoss-metric-ingest
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zenoss-metric-ingest
+    spec:
+      containers:
+      - name: zenoss-metric-ingest
+        image: registry.zing.zenoss.eng/zenosszing/zenoss-metric-ingest:e723bce4
+        env:
+          - name: ZENOSS_METRIC_INGEST_AUTH_DISABLED
+            value: '1'
+          - name: ZENOSS_METRIC_INGEST_AUTH_KEY_FILE
+            value: /run/secrets/authorization_secret
+        ports:
+        - containerPort: 8080
+          name: rest
+        volumeMounts:
+        - name: authorization-secret
+          mountPath: /run/secrets
+      initContainers:
+      - name: pipeline-init
+        image: registry.zing.zenoss.eng/zenosszing/metric-pipeline-initializer:ec928496
+      volumes:
+      - name: authorization-secret
+        secret:
+          secretName: authorization
+          items: 
+          - key: value
+            path: authorization_secret
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata: 
+  name: zenoss-metric-ingest
+  annotations: 
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+  labels:
+    tier: service
+spec:
+  rules:
+  - http: 
+      paths:
+      - path: /api/metrics/ingest
+        backend: 
+          serviceName: zenoss-metric-ingest
+          servicePort: 8080
+

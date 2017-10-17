@@ -10,7 +10,7 @@
 - [x] gw-service
 - [x] graphql
 - [x] zenoss-model-ingest / model-ingest-pipeline-initializer
-- [ ] zenoss-metric-ingest / metric-pipeline-initializer
+- [x] zenoss-metric-ingest / metric-pipeline-initializer
 - [x] domain-query / query-pipeline-initializer
 - [x] reporter
 
