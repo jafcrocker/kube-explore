@@ -1,3 +1,11 @@
+
+## Base functionality
+- [ ] Network 
+- [x] Secrets
+- [ ] Edge ingress (i.e., replace lb-edge)
+- [ ] Health checking
+
+
 ## Service tiers
 
 # Edge
@@ -29,7 +37,3 @@
 - [x] zookeeper
 - [x] hdfs-namenode
 - [x] hdfs-datanode
-
-## Other functionality
-- [ ] Network 
-- [x] Secrets

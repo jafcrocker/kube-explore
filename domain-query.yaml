@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: domain-query
-        image: registry.zing.zenoss.eng/zenosszing/domain-query:1525c7e1
+        image: registry.zing.zenoss.eng/zenosszing/domain-query:d69f1808
         env:
           - name: DOMAIN_QUERY_AUTH_DISABLED
             value: '1'

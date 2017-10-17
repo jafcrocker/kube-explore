@@ -40,7 +40,7 @@ spec:
           mountPath: /run/secrets
       initContainers:
       - name: pipeline-init
-        image: registry.zing.zenoss.eng/zenosszing/metric-pipeline-initializer:ec928496
+        image: registry.zing.zenoss.eng/zenosszing/metric-pipeline-initializer:57367577
       volumes:
       - name: authorization-secret
         secret:

@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: graphql
-        image: registry.zing.zenoss.eng/zenosszing/graphql:22f72433
+        image: registry.zing.zenoss.eng/zenosszing/graphql:802acc45
         env:
           - name: GRAPHQL_AUTH_DISABLED
             value: '1'
