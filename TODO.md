@@ -1,7 +1,7 @@
 ## Service tiers
 
 # Edge
-- [ ] lb-edge
+- [x] lb-edge
 - [x] web 
 - [x] edge
 
